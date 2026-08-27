@@ -1,0 +1,48 @@
+name: Playwright QA Automation CI/CD Pipeline
+
+on:
+    push:
+        branches: [main, master]
+    pull_request:
+        branches: [main, master]
+
+jobs:
+    test:
+        timeout-minutes: 10
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Repository Code
+              uses: actions/checkout@v4
+
+            - name: Set Up Node.js Environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 18
+                  cache: "npm"
+
+            - name: Install Project Dependencies
+              run: npm ci || npm install
+
+            - name: Install Playwright Browsers and OS System Libraries
+              run: npx playwright install --with-deps
+
+            - name: Run E2E Test Suite (UI & API)
+              # We restrict execution to a single worker stream to prevent CPU throttling on free cloud runners
+              run: npx playwright test --workers=1
+
+            - name: Archive Automated Test Execution Reports
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: playwright-execution-report
+                  path: playwright-report/
+                  retention-days: 14
+
+            - name: Archive Visual Test Failure Screenshot Assets
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: test-failure-screenshots
+                  path: test-results/
+                  retention-days: 14
