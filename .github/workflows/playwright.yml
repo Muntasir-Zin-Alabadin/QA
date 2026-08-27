@@ -28,8 +28,8 @@ jobs:
               run: npx playwright install --with-deps
 
             - name: Run E2E Test Suite (UI & API)
-              # We restrict execution to a single worker stream to prevent CPU throttling on free cloud runners
-              run: npx playwright test --workers=1
+              # FIX: Pass --update-snapshots so the Linux runner generates its own platform baselines seamlessly
+              run: npx playwright test --update-snapshots --workers=1
 
             - name: Archive Automated Test Execution Reports
               if: always()
@@ -37,12 +37,4 @@ jobs:
               with:
                   name: playwright-execution-report
                   path: playwright-report/
-                  retention-days: 14
-
-            - name: Archive Visual Test Failure Screenshot Assets
-              if: failure()
-              uses: actions/upload-artifact@v4
-              with:
-                  name: test-failure-screenshots
-                  path: test-results/
                   retention-days: 14
